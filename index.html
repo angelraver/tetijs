@@ -1,335 +1,346 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<style>
-body {
-	background: black;
-	text-align: center;
-}
-canvas {
-	margin: 1% auto;
-	border:1px solid #d3d3d3;
-	background-color: #ccc;
-}
-button {
-	display: block;
-	margin: 0 auto;
-}
-</style>
+  <title>Testrijs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    @font-face {
+      font-family: ArcadeClassic;
+      src: url(arcadeClassic.ttf);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      text-align: center;
+      font-family: ArcadeClassic;
+    }
+
+    #game {
+      position: relative;
+      border: 1px solid grey;
+      display: block;
+      width: 300px;
+      margin: 1% auto;
+      padding: 10px;
+    }
+
+    canvas {
+      display: block;
+      float: left;
+      border: 1px solid #d3d3d3;
+      background-color: #000;
+    }
+
+    button {
+      display: block;
+      margin: 0 auto;
+      font-size: 16px;
+
+    }
+
+    .stats {
+      display: block;
+      float: right;
+      width: 90px;
+      border: 1px solid grey;
+      color: white;
+      font-size: 1.5em;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .stats span {
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+
+    .title {
+      display: block;
+      bottom: 10px;
+      right: 10px;
+      position: absolute;
+      color: white;
+      font-size: 2em;
+    }
+  </style>
 </head>
+
 <body onload="">
-<button onclick="stop()" >Stop!</button>
-<button onclick="go()" >Go!</button>
+  <div id="game">
+    <div class="stats">
+      <span>Score</span>
+      <span id="score">123456</span>
+    </div>
+    <div class="stats">
+      <span>lines</span>
+      <span id="lines">12</span>
+    </div>
+    <span class="title">Tetri<br />JS</span>
+  </div>
+  <button onclick="stop()">Stop!</button>
+  <button onclick="go()">Go!</button>
 
-<script>
-const BLOCK_UNITY = 20;
-const FORMS = [
-	{
-		id: 'S',
-		pieces: [
-			{
-				order: 1,
-				blocks: [
-					{ r: 1, c: 1 },
-					{ r: 2, c: 1 },
-					{ r: 2, c: 2 },
-					{ r: 3, c: 2 }
-				]
-			},
-			{
-				order: 2,
-				blocks: [
-					{ r: 1, c: 2 },
-					{ r: 1, c: 3 },
-					{ r: 2, c: 1 },
-					{ r: 2, c: 2 }
-				]
-			}
-		]
-	},
-	{
-		id: 'Z',
-		pieces: [
-			{
-				order: 1,
-				blocks: [
-					{ r: 1, c: 2 },
-					{ r: 2, c: 1 },
-					{ r: 2, c: 2 },
-					{ r: 3, c: 1 }
-				]
-			},
-			{
-				order: 2,
-				blocks: [
-					{ r: 1, c: 1 },
-					{ r: 1, c: 2 },
-					{ r: 2, c: 2 },
-					{ r: 2, c: 3 }
-				]
-			}
-		]
-	},
-	{
-		id: 'I',
-		pieces: [
-			{
-				order: 1,
-				blocks: [
-					{ r: 1, c: 2 },
-					{ r: 2, c: 2 },
-					{ r: 3, c: 2 },
-					{ r: 4, c: 2 }
-				]
-			},
-			{
-				order: 2,
-				blocks: [
-					{ r: 2, c: 1 },
-					{ r: 2, c: 2 },
-					{ r: 2, c: 3 },
-					{ r: 2, c: 4 }
-				]
-			}
-		]
-	},
-	{
-		id: 'O',
-		pieces: [
-			{
-				order: 1,
-				blocks:[
-					{ r: 1, c: 1 },
-					{ r: 1, c: 2 },
-					{ r: 2, c: 1 },
-					{ r: 2, c: 2 },
-					]
-			}
-		]
-	},
-	{
-		id: 'L',
-		pieces: [
-			{
-				order: 1,
-				blocks: [
-					{ r: 1, c: 1 },
-					{ r: 2, c: 1 },
-					{ r: 3, c: 1 },
-					{ r: 3, c: 2 },
-				]
-			},
-			{
-				order: 2,
-				blocks: [
-					{ r: 1, c: 3 },
-					{ r: 2, c: 1 },
-					{ r: 2, c: 2 },
-					{ r: 2, c: 3 }
-				]
-			},
-			{
-				order: 3,
-				blocks: [
-					{ r: 1, c: 2 },
-					{ r: 1, c: 3 },
-					{ r: 2, c: 3 },
-					{ r: 3, c: 3 }
-				]
-			},
-			{
-				order: 4,
-				blocks: [
-					{ r: 1, c: 1 },
-					{ r: 1, c: 2 },
-					{ r: 1, c: 3 },
-					{ r: 2, c: 1 }
-				],
-			}
-		]
-	},
-	// {
-	// 	id: 'LL',
-	// 	pieces: [
-	// 		{
-	// 			order: 1,
-	// 			blocks: [
-	// 				{ r: 1, c: 3 },
-	// 				{ r: 2, c: 3 },
-	// 				{ r: 3, c: 3 },
-	// 				{ r: 3, c: 2 },
-	// 			]
-	// 		},
-	// 		{
-	// 			order: 2,
-	// 			blocks: [
-	// 				{ r: 1, c: 1 },
-	// 				{ r: 2, c: 1 },
-	// 				{ r: 2, c: 2 },
-	// 				{ r: 2, c: 3 }
-	// 			]
-	// 		},
-	// 		{
-	// 			order: 3,
-	// 			blocks: [
-	// 				{ r: 1, c: 1 },
-	// 				{ r: 1, c: 2 },
-	// 				{ r: 2, c: 1 },
-	// 				{ r: 3, c: 1 }
-	// 			]
-	// 		},
-	// 		{
-	// 			order: 4,
-	// 			blocks: [
-	// 				{ r: 1, c: 1 },
-	// 				{ r: 1, c: 2 },
-	// 				{ r: 1, c: 3 },
-	// 				{ r: 2, c: 3 }
-	// 			]
-	// 		}
-	// 	]
-	// }
-];
+  <script src="./config.js" type="text/javascript"></script>
+  <script type="text/javascript">
+    const gameFrame = document.getElementById('game');
+    const CANVAS = document.createElement("canvas");
+    CANVAS.width = GAME_WIDTH;
+    CANVAS.height = GAME_HEIGHT;
+    gameFrame.insertBefore(CANVAS, gameFrame.childNodes[0]);
+    gameFrame.style.height = CANVAS.height + 'px';
 
-const COLORS = ['#FF0000', '#008000', '#000080', '#FFFF00', '#800080', '#000080', '#800000'];
-const GRAVITY = 1;
-const GAME_SPEED = 16;
-const CANVAS = document.createElement("canvas");
-CANVAS.width = 200;
-CANVAS.height = 400;
-document.body.insertBefore(CANVAS, document.body.childNodes[0]);
+    const context = CANVAS.getContext('2d');
+    var ActivePiece;
+    var NewPiece = true;
+    var AllBlocks = [];
+    var MoveX = 0;
+    var AllBlocksLine;
+    var Points = 0;
+    var Lines = 0;
 
-var ActivePiece;
-var NewPiece = true;
-var AllBlocks = [];
-var MoveX = 0;
+    function rolling() {
 
-const getPiece = () => {
-	let form = FORMS[random(FORMS.length)];
-	let formPiece = form.pieces[random(form.pieces.length)];
+      if (NewPiece) {
+        ActivePiece = JSON.parse(JSON.stringify(getPiece()));
+      }
 
-	return {
-		id: form.id,
-		x: BLOCK_UNITY * 4,
-		y: -BLOCK_UNITY,
-		color: COLORS[random(COLORS.length)],
-		order: formPiece.order,
-		blocks: formPiece.blocks
-	}
-}
+      context.clearRect(0, 0, CANVAS.width, CANVAS.height);
+      NewPiece = false;
 
-function rolling(){
-	if(NewPiece){
-		ActivePiece = JSON.parse(JSON.stringify(getPiece()));
-	}
-	const context = CANVAS.getContext('2d');
-	context.clearRect(0, 0, CANVAS.width, CANVAS.height);
-	NewPiece = false;
+      if (!isAtTheBottom()) {
+        moveActivePiece();
+        MoveX = 0;
+      } else {
+        saveActivePiece();
+        NewPiece = true;
+      }
 
-	if(!isAtTheBottom()) {
-		ActivePiece.y = ActivePiece.y + GRAVITY;
-		ActivePiece.x = ActivePiece.x + MoveX;
-		ActivePiece.blocks.map(function(block) {
-			let x = ActivePiece.x + (block.c * 	BLOCK_UNITY);
-			let y = ActivePiece.y + (block.r * 	BLOCK_UNITY);
-			context.fillStyle = ActivePiece.color;
-			context.fillRect(x, y, BLOCK_UNITY, BLOCK_UNITY);
-		});
-		MoveX = 0;
-	}
-	else {
-		ActivePiece.blocks.map(function(block) {			
-			AllBlocks.push({
-				x: ActivePiece.x + (block.c * BLOCK_UNITY),
-				y: ActivePiece.y + (block.r * BLOCK_UNITY),
-				color: ActivePiece.color
-			});
-		});
-		NewPiece = true;
-	}
+      scoring();
 
-	AllBlocks.map(function(block){
-		context.fillStyle = block.color;
-		context.fillRect(block.x, block.y, BLOCK_UNITY, BLOCK_UNITY);
-	});
-}
+      drawBlocks();
 
-const otherPieceX = (block) => {
-	return AllBlocks.some(block2 => 
-		(block.x - MoveX <= block2.x && block.y <= block2.y) ||
-		(block.x + MoveX >= block2.x && block.y <= block2.y)
-	);
-}
+      if (NewPiece) {
+        checkLines();
+      }
+    }
 
-const isAtTheBottom = () => {
-	return ActivePiece.blocks.some(block => {
-		let nextY = ActivePiece.y + (block.r * BLOCK_UNITY) + BLOCK_UNITY;
-		let nextX = ActivePiece.x + (block.c * BLOCK_UNITY);
-		return nextY >=  CANVAS.height ||
-			AllBlocks.some(block2 => {
-				return nextY >= block2.y && nextX === block2.x;
-			});
-	});
-};
+    const getPiece = () => {
+      let form = FORMS[random(FORMS.length)];
+      let formPiece = form.pieces[random(form.pieces.length)];
 
-var start = setInterval(rolling, GAME_SPEED);
+      return {
+        id: form.id,
+        x: BLOCK_UNITY * 4,
+        y: -BLOCK_UNITY,
+        color: COLORS[random(COLORS.length)],
+        order: formPiece.order,
+        blocks: formPiece.blocks
+      }
+    }
 
-function go() {
-	start = setInterval(rolling, GAME_SPEED);
-}
+    function scoring() {
+      document.getElementById('lines').innerHTML = Lines;
+    }
 
-function stop() {
-  console.log('stop!')
-  clearInterval(start);
-}
+    function moveActivePiece() {
+      ActivePiece.y = ActivePiece.y + GRAVITY;
+      ActivePiece.x = ActivePiece.x + MoveX;
+      ActivePiece.blocks.map(function (block) {
+        let x = ActivePiece.x + (block.c * BLOCK_UNITY);
+        let y = ActivePiece.y + (block.r * BLOCK_UNITY);
+        context.fillStyle = ActivePiece.color;
+        context.fillRect(x, y, BLOCK_UNITY, BLOCK_UNITY);
+      });
+    }
 
-function random(limit) {
-  return Math.floor(Math.random() * limit);
-}
+    function saveActivePiece() {
+      ActivePiece.blocks.map(function (block) {
+        AllBlocks.push({
+          x: ActivePiece.x + (block.c * BLOCK_UNITY),
+          y: ActivePiece.y + (block.r * BLOCK_UNITY),
+          color: ActivePiece.color
+        });
+      });
+    }
 
-const rightLimit = () => ActivePiece.blocks.some(block => ActivePiece.x + (block.c * BLOCK_UNITY) + BLOCK_UNITY >= CANVAS.width);
-const leftLimit = () => ActivePiece.blocks.some(block => ActivePiece.x + (block.c * BLOCK_UNITY) <= 0);
-const rightOtherPiece = () => ActivePiece.blocks.some(block => AllBlocks.some(block2 => block.x + BLOCK_UNITY >= block2.x && block.y + BLOCK_UNITY >= block2.y));
-const leftOtherPiece = () => ActivePiece.blocks.some(block => AllBlocks.some(block2 => block.x - BLOCK_UNITY <= block2.x && block.y + BLOCK_UNITY >= block2.y));
+    function drawBlocks() {
+      AllBlocks.map(function (block) {
+        context.fillStyle = block.color;
+        context.fillRect(block.x, block.y, BLOCK_UNITY, BLOCK_UNITY);
+      });
+    }
 
-function rotate() {
-	if(!NewPiece) {
-		let nextForm;
-		FORMS.map(form => {
-			if(form.id === ActivePiece.id) {
-				nextForm = form;
-			}
-		});
-		let activeOrder = ActivePiece.order;
-		let maxOrder = nextForm.pieces.length;
-		let nextOrder = activeOrder < maxOrder ? activeOrder + 1 : 1;
+    function checkLines() {
+      AllBlocksLine = [];
+      AllBlocks.map(function (block) {
+        let y = block.y;
+        if (AllBlocksLine.length < 1) {
+          AllBlocksLine.push([y]);
+        } else {
+          AllBlocksLine.map(line => {
+            if (line.some(l => l === y)) {
+              line.push(y);
+            } else {
+              if (!AllBlocksLine.some(l => l.some(ll => ll === y))) {
+                AllBlocksLine.push([y]);
+              }
+            }
+          })
+        }
+      });
 
-		ActivePiece.order = nextOrder;
-		ActivePiece.blocks = JSON.parse(JSON.stringify(nextForm.pieces[nextOrder - 1].blocks));
-	}
-}
+      let lines = getLines();
+      let text = lineText(lines.length);
 
-function manageKey(e) {
-	switch(e.code){
-		case 'ArrowRight':
-			// MoveX = rightLimit() || rightOtherPiece() ? 0 : BLOCK_UNITY;
-			MoveX = rightLimit() ? 0 : BLOCK_UNITY;
-		break;
-		case 'ArrowLeft':
-			// MoveX = leftLimit() || leftOtherPiece() ? 0 : -BLOCK_UNITY;
-			MoveX = leftLimit() ? 0 : -BLOCK_UNITY;
-		break;
-		case 'ArrowUp':
-			rotate();
-		break;
-		default:
-		break;
-	}
-}
+      lines.map(y => {
+        context.fillStyle = '#FFFFFF';
+        context.font = '24px ArcadeClassic';
+        context.fillText(text, 50, y + BLOCK_UNITY);
+      })
 
-document.body.addEventListener('keydown', manageKey);
+      if (text !== '') {
+        AllBlocks = getNewBlocks(lines);
+        clearInterval(start);
+        setTimeout(go, 1000);
+      }
+    }
 
-</script>
+    const getLines = () => {
+      let lines = [];
+      AllBlocksLine.map(line => {
+        if (line.length === 10) {
+          lines.push(line[0]);
+          Lines++;
+        }
+      });
+
+      return lines;
+    }
+
+    const getNewBlocks = (lines) => {
+      let newBlocks = JSON.parse(JSON.stringify(AllBlocks));
+      newBlocks.map(function (block, index) {
+        block.remove = false;
+        lines.map(function (y) {
+          if (block.y === y) block.remove = true;
+          if (block.y < y) block.y = block.y + BLOCK_UNITY;
+        })
+      });
+
+      return newBlocks.filter(block => !block.remove);
+    }
+
+    const lineText = (n) => {
+      switch (n) {
+        case 1:
+          return 'SINGLE!';
+          break;
+        case 2:
+          return 'DOUBLE!!';
+          break;
+        case 3:
+          return 'TRIPLE!!!';
+          break;
+        case 4:
+          return 'TETRIS!!!!';
+          break;
+        default:
+          return '';
+      }
+    }
+
+    var start = setInterval(rolling, GAME_SPEED);
+
+    function go() {
+      start = setInterval(rolling, GAME_SPEED);
+    }
+
+    function stop() {
+      clearInterval(start);
+    }
+
+    function random(limit) {
+      return Math.floor(Math.random() * limit);
+    }
+
+    const isAtTheBottom = () => {
+      return ActivePiece.blocks.some(block => {
+        let nextY = ActivePiece.y + (block.r * BLOCK_UNITY) + BLOCK_UNITY;
+        let nextX = ActivePiece.x + (block.c * BLOCK_UNITY);
+        return nextY >= CANVAS.height ||
+          AllBlocks.some(block2 => {
+            return nextY >= block2.y && nextX === block2.x;
+          });
+      });
+    };
+
+    const rightLimit = (piece) => piece.blocks.some(block => piece.x + (block.c * BLOCK_UNITY) + BLOCK_UNITY >= CANVAS.width);
+
+    const leftLimit = (piece) => piece.blocks.some(block => piece.x + (block.c * BLOCK_UNITY) <= 0);
+
+    const rightOtherPiece = () => {
+      let rr = ActivePiece.blocks.some(block => {
+        return AllBlocks.some(block2 => {
+          console.log(block.x + BLOCK_UNITY + BLOCK_UNITY, block2.x );
+          return block.x + BLOCK_UNITY + BLOCK_UNITY >= block2.x 
+            || block.y + BLOCK_UNITY >= block2.y;
+        })
+      })
+      console.log(rr);
+      return rr;
+    };
+
+    const leftOtherPiece = () => {
+      return ActivePiece.blocks.some(block => {
+        return AllBlocks.some(block2 => {
+          return block.x - BLOCK_UNITY <= block2.x 
+            && block.y + BLOCK_UNITY >= block2.y
+        })
+      });
+    };
+
+    function rotate() {
+      if (!NewPiece) {
+        let nextForm;
+        FORMS.map(form => {
+          if (form.id === ActivePiece.id) {
+            nextForm = form;
+          }
+        });
+        let activeOrder = ActivePiece.order;
+        let maxOrder = nextForm.pieces.length;
+        let nextOrder = activeOrder < maxOrder ? activeOrder + 1 : 1;
+
+        const newPiece = JSON.parse(JSON.stringify(ActivePiece));
+        newPiece.order = nextOrder;
+        newPiece.blocks = JSON.parse(JSON.stringify(nextForm.pieces[nextOrder - 1].blocks));
+
+        if(!leftLimit(newPiece) && !rightLimit(newPiece)) ActivePiece = newPiece;
+      }
+    }
+
+    function manageKey(e) {
+      switch (e.code) {
+        case 'ArrowRight':
+          MoveX = rightLimit(ActivePiece) || rightOtherPiece () ? 0 : BLOCK_UNITY;
+          break;
+        case 'ArrowLeft':
+          // MoveX = leftLimit() || leftOtherPiece() ? 0 : -BLOCK_UNITY;
+          MoveX = leftLimit(ActivePiece) ? 0 : -BLOCK_UNITY;
+          break;
+        case 'ArrowUp':
+          rotate();
+          break;
+        default:
+          break;
+      }
+    }
+
+    document.body.addEventListener('keydown', manageKey);
+  </script>
 </body>
+
 </html>
